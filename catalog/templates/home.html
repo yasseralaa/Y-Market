@@ -1,0 +1,35 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="container">
+    {% for x in supermarkets %}
+    <div class="row">
+        <div class="media">
+            <div class="media-left">
+                <a href="{{ url_for('market',supermarket_id = x.id) }}">
+                    <img class="media-object" src="{{ url_for('static', filename=x.picture) }}" alt="market image"
+                         width="64px" height="64px">
+                </a>
+            </div>
+            <div class="media-body">
+                <a href="{{ url_for('market',supermarket_id = x.id) }}"><h2 class="media-heading">{{x.name}}</h2></a>
+                {{x.address}}
+            </div>
+        </div>
+        <br>
+        <!--<p> {{x.user.name}} </p>-->
+        {% if x.user.name == currentUser %}
+
+        <a href="{{ url_for('editmarket',supermarket_id = x.id) }}">
+            <button type="button" class="btn btn-primary">Edit</button>
+        </a>
+        <a href="{{ url_for('deletemarket',supermarket_id = x.id) }}" onclick="return confirm('Are you sure?')">
+            <button type="button" class="btn btn-danger">Delete</button>
+        </a>
+        {% endif %}
+    </div>
+    <hr>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

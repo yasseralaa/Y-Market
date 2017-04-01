@@ -1,0 +1,170 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div id="signInButton btn btn-lg btn-block omb_btn-google">
+
+          <span class="g-signin"
+                data-scope="openid email"
+                data-clientid="43014693925-grkds9ltddt69uv5havk62i0gporume5.apps.googleusercontent.com"
+                data-redirecturi="postmessage"
+                data-accesstype="offline"
+                data-cookiepolicy="single_host_origin"
+                data-callback="signInCallback"
+                data-approvalprompt="force">
+          </span>
+
+</div>
+<fb:login-button data-size="xlarge"
+                 scope="public_profile,email"
+                 onlogin="sendTokenToServer();">
+</fb:login-button>
+
+<div class="col-md-11 col-md-offset-1 padding-none">
+    <h1>Login</h1>
+</div>
+<div class="row">
+    <div class="col-md-6 col-md-offset-1 padding-top">
+        <form action="{{ url_for('login') }}" method="Post" enctype="multipart/form-data">
+            <div class="form-group">
+                <input name=_csrf_token type=hidden value="{{ csrf_token() }}">
+                <label>E-Mail:</label>
+                <input type="email" class="form-control" maxlength="100" name="email" required>
+                <label>Password:</label>
+                <input type="password" class="form-control" maxlength="100" name="password" required>
+                <br>
+                <button type="submit" class="btn btn-default" type="submit">Login</button>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<hr>
+<div class="row divider green">
+    <div class="col-md-12"></div>
+</div>
+<div class="row banner menu">
+    <div class="col-md-11 col-md-offset-1 padding-none">
+        <h1>New User</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 col-md-offset-1 padding-top">
+        <form action="{{ url_for('register') }}" method="Post" enctype="multipart/form-data">
+            <div class="form-group">
+                <input name=_csrf_token type=hidden value="{{ csrf_token() }}">
+                <label>Name:</label>
+                <input type="text" class="form-control" maxlength="100" name="name" required>
+                <label>E-Mail:</label>
+                <input type="email" class="form-control" maxlength="100" name="email" required>
+                <label>Choose profile picture</label>
+                <input type="file" name="file"/>
+                <label>Password:</label>
+                <input type="password" class="form-control" maxlength="100" name="password" required>
+                <label>Re-enter Password:</label>
+                <input type="password" class="form-control" maxlength="100" name="repassword" required>
+                <br>
+                <button type="submit" class="btn btn-default" type="submit">Register</button>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- GOOGLE PLUS SIGN IN-->
+
+
+<script>
+    function signInCallback(authResult) {
+        if (authResult['code']) {
+            // Hide the sign-in button now that the user is authorized
+            $('#signinButton').attr('style', 'display: none');
+            // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
+            $.ajax({
+                type: 'POST',
+                url: '/gconnect?state={{STATE}}',
+                processData: false,
+                data: authResult['code'],
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: function (result) {
+                    // Handle or verify the server response if necessary.
+                    if (result) {
+                        $('#result').html('Login Successful!</br>' + result + '</br>Redirecting...')
+                        setTimeout(function () {
+                            window.location.href = "/";
+                        }, 4000);
+
+                    } else if (authResult['error']) {
+                        console.log('There was an error: ' + authResult['error']);
+                    } else {
+                        $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+                    }
+                }
+
+            });
+        }
+    }
+</script>
+
+<!--END GOOGLE PLUS SIGN IN -->
+
+<!--FACEBOOK SIGN IN -->
+<script>
+    window.fbAsyncInit = function () {
+        FB.init({
+            appId: '281336128955926',
+            cookie: true,
+            xfbml: true,
+            version: 'v2.8'
+        });
+        FB.AppEvents.logPageView();
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+    // Here we run a very simple test of the Graph API after login is
+    // successful.  See statusChangeCallback() for when this call is made.
+    function sendTokenToServer() {
+        var access_token = FB.getAuthResponse()['accessToken'];
+        console.log(access_token)
+        console.log('Welcome!  Fetching your information.... ');
+        FB.api('/me', function (response) {
+            console.log('Successful login for: ' + response.name);
+            $.ajax({
+                type: 'POST',
+                url: '/fbconnect?state={{STATE}}',
+                processData: false,
+                data: access_token,
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: function (result) {
+                    // Handle or verify the server response if necessary.
+                    if (result) {
+                        $('#result').html('Login Successful!</br>' + result + '</br>Redirecting...')
+                        setTimeout(function () {
+                            window.location.href = "/";
+                        }, 4000);
+
+                    } else {
+                        $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+                    }
+                }
+
+            });
+        });
+    }
+</script>
+
+
+<!--END FACEBOOK SIGN IN -->
+
+{% endblock %}
